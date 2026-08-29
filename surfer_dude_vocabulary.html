@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Surfer Dude Vocabulary</title>
 <style>
   * { box-sizing: border-box; }
@@ -40,6 +41,7 @@
     position: absolute;
     width: 5.6%;
     min-width: 18px;
+    min-height: 18px;
     aspect-ratio: 1 / 1;
     background: rgba(255, 210, 60, 0.55);
     border: 2px solid #ffb700;
@@ -160,11 +162,33 @@ let quizMode = false;
 let quizQueue = [];
 let quizAnswer = null;
 
+function pickEnglishVoice(){
+  const voices = window.speechSynthesis.getVoices() || [];
+  if(voices.length === 0) return null;
+  const preferredNames = ["Samantha","Google US English","Microsoft Zira Online (Natural) - English (United States)","Microsoft Zira","Microsoft David","Alex","Karen","Daniel","Google UK English Female"];
+  for(const name of preferredNames){
+    const v = voices.find(v => v.name === name);
+    if(v) return v;
+  }
+  let v = voices.find(v => v.lang === "en-US");
+  if(v) return v;
+  v = voices.find(v => v.lang === "en-GB");
+  if(v) return v;
+  v = voices.find(v => v.lang && v.lang.toLowerCase().startsWith("en"));
+  return v || null;
+}
+
 function speak(text) {
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
   utter.rate = 0.95;
+  utter.lang = "en-US";
+  const voice = pickEnglishVoice();
+  if(voice) utter.voice = voice;
   window.speechSynthesis.speak(utter);
+}
+if("speechSynthesis" in window){
+  window.speechSynthesis.onvoiceschanged = () => { window.speechSynthesis.getVoices(); };
 }
 
 function say(part) {
